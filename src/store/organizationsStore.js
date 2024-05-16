@@ -24,7 +24,6 @@ export const useOrganizationStore = defineStore('organizationStore', {
 
                 this.count = response.data.count;
                 this.organizations = response.data.results;
-                console.log('get', this.organizations);
                 this.loading = false;
             } catch (error) {
                 console.log('Произошла ошибка при получении организации:', error);
@@ -37,7 +36,6 @@ export const useOrganizationStore = defineStore('organizationStore', {
                         `https://developer3.elros.info/api/v1/organizations/?page=${page}&page_size=${page_size}&ordering=${param}`,
                     );
                     this.organizations = response.data.results;
-                    console.log('sort', this.organizations);
                     this.sortOrder = 'up';
                 } else {
                     const response = await axios.get(
