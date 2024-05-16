@@ -19,12 +19,14 @@ body {
 h1,
 h2,
 h3,
+h4,
 p,
 a {
     text-decoration: none;
     margin: 0;
     padding: 0;
     color: white;
+    font-weight: 400;
 }
 
 ul {
@@ -52,6 +54,5 @@ button {
     -webkit-font-smoothing: inherit;
     -moz-osx-font-smoothing: inherit;
 
-    /* Corrects inability to style clickable `input` types in iOS */
     -webkit-appearance: none;
 }

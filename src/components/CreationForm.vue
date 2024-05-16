@@ -8,16 +8,19 @@
             :input="'full'"
             :title="'Полное наименование'"
             :value="formData.fullName"
+            :error="nameError"
             @inputChange="updateData('fullName', $event)" />
         <CreationFormBlock
             :input="'short'"
             :title="'Краткое наименование'"
             :value="formData.shortName"
+            :error="shortNameError"
             @inputChange="updateData('shortName', $event)" />
         <CreationFormBlock
             :input="'textarea'"
             :title="'Описание'"
             :value="formData.description"
+            :error="descriptionError"
             @inputChange="updateData('description', $event)" />
         <CreationFormBlock :input="'picture'" :title="'Картинка'" />
         <div class="creation-form-buttons">
@@ -47,6 +50,9 @@ export default {
                 shortName: '',
                 description: '',
             },
+            nameError: '',
+            shortNameError: '',
+            descriptionError: '',
         };
     },
     created() {
@@ -56,9 +62,39 @@ export default {
         updateData(field, value) {
             this.formData[field] = value;
         },
+        formValidate(fullName, shortName, description) {
+            let isValid = false;
+
+            this.nameError = '';
+            this.shortNameError = '';
+            this.descriptionError = '';
+
+            if (fullName && shortName && description) {
+                isValid = true;
+            }
+
+            if (!fullName) {
+                this.nameError = 'Заполните полное наименование!';
+                isValid = false;
+            }
+
+            if (!shortName) {
+                this.shortNameError = 'Заполните краткое наименование!';
+                isValid = false;
+            }
+
+            if (!description) {
+                this.descriptionError = 'Заполните описание!';
+                isValid = false;
+            }
+
+            return isValid;
+        },
         createOrganization(name, short_name, description, is_active = true) {
-            console.log(this.formData);
-            this.organizationStore.createOrganization(name, short_name, description, is_active);
+            const isValid = this.formValidate(name, short_name, description);
+            if (isValid) {
+                this.organizationStore.createOrganization(name, short_name, description, is_active);
+            }
         },
     },
 };

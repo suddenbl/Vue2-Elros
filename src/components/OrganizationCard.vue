@@ -46,7 +46,11 @@ export default {
 .organization-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    margin-bottom: 30px;
+    margin-bottom: 15px;
+}
+
+.organization-row:last-child {
+    margin-bottom: 25px;
 }
 
 .active-toggle {
@@ -65,7 +69,6 @@ export default {
 .delete-col-img {
     width: 30px;
     height: 30px;
-    /* transition: filter 0.3s ease-in-out; */
     cursor: pointer;
 }
 

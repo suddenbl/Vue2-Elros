@@ -1,11 +1,11 @@
 <template>
     <div class="table-container">
-        <p class="table-description">
+        <h4 class="table-description">
             Доступна сортировка. Для этого действия нажмите на именования столбцов.
-        </p>
+        </h4>
         <div class="table-bar">
             <div class="col id-col">
-                <p class="id-col-name" @click="sortOrganizations('id')">
+                <p class="id-col-name" @click="sortOrganizations('id', page, page_size)">
                     ID
                     <img
                         :class="{
@@ -16,8 +16,12 @@
                         alt="arrow" />
                 </p>
             </div>
-            <div class="col name-col" @click="sortOrganizations('name')">Наименование</div>
-            <div class="col active-col" @click="sortOrganizations('is_active')">Активен</div>
+            <div class="col name-col" @click="sortOrganizations('name', page, page_size)">
+                Наименование
+            </div>
+            <div class="col active-col" @click="sortOrganizations('is_active', page, page_size)">
+                Активен
+            </div>
             <div class="col delete-col">Удаление</div>
         </div>
         <div class="table-content" v-if="organizationStore.loading === false">
@@ -27,6 +31,35 @@
                 :org="org" />
         </div>
         <div class="loading-content" v-else>Идет загрузка...</div>
+        <div class="pagination">
+            <p>Количество на странице</p>
+            <input
+                class="pagination-size"
+                type="number"
+                min="1"
+                :max="organizationStore.count"
+                v-model="page_size"
+                @change="getOrganizations(1, page_size)" />
+            <p>
+                {{ (page - 1) * page_size + 1 }} -
+                {{ Math.min(page * page_size, organizationStore.count) }} из
+                {{ organizationStore.count }}
+            </p>
+            <div class="pagination-buttons-block">
+                <button class="pagination-button" @click="getOrganizationsFirst(page_size)">
+                    {{ '|<' }}
+                </button>
+                <button class="pagination-button" @click="getOrganizationsPrev(page, page_size)">
+                    {{ '<' }}
+                </button>
+                <button class="pagination-button" @click="getOrganizationsNext(page, page_size)">
+                    {{ '>' }}
+                </button>
+                <button class="pagination-button" @click="getOrganizationsLast(page_size)">
+                    {{ '>|' }}
+                </button>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -41,17 +74,43 @@ export default {
     data() {
         return {
             organizationStore: null,
+            page: 1,
+            page_size: 5,
         };
     },
     created() {
         this.organizationStore = useOrganizationStore();
     },
     methods: {
-        getOrganizations() {
-            this.organizationStore.getOrganizations();
+        getOrganizations(page, page_size) {
+            this.organizationStore.getOrganizations(page, page_size);
         },
-        sortOrganizations(param) {
-            this.organizationStore.sortOrganizations(param);
+        getOrganizationsFirst(page_size) {
+            this.page = 1;
+            this.getOrganizations(this.page, page_size);
+        },
+        getOrganizationsPrev(page, page_size) {
+            if (this.organizationStore.previous === null) {
+                return;
+            } else {
+                this.page = page - 1;
+                this.getOrganizations(this.page, page_size);
+            }
+        },
+        getOrganizationsNext(page, page_size) {
+            if (this.organizationStore.next === null) {
+                return;
+            } else {
+                this.page = page + 1;
+                this.getOrganizations(this.page, page_size);
+            }
+        },
+        getOrganizationsLast(page_size) {
+            this.page = Math.ceil(this.organizationStore.count / page_size);
+            this.getOrganizations(this.page, page_size);
+        },
+        sortOrganizations(param, page, page_size) {
+            this.organizationStore.sortOrganizations(param, page, page_size);
         },
     },
 };
@@ -122,5 +181,36 @@ export default {
 
 .rotated {
     transform: rotateX(0deg);
+}
+
+.table-content {
+    margin-bottom: 30px;
+    border-bottom: 2px solid rgb(56, 54, 54);
+}
+
+.pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 30px;
+}
+
+.pagination-quantity {
+    border: 1px solid white;
+    padding: 5px;
+}
+
+.pagination-buttons-block {
+    display: flex;
+    gap: 30px;
+}
+
+.pagination-button {
+    cursor: pointer;
+    transition: color 0.3s ease-in-out;
+}
+
+.pagination-button:hover {
+    color: green;
 }
 </style>

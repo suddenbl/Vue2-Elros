@@ -6,35 +6,42 @@ export const useOrganizationStore = defineStore('organizationStore', {
         loading: false,
         organizations: [],
         sortOrder: 'down',
-        fullName: '',
-        shortName: '',
-        description: '',
-        is_active: true,
+        count: 0,
+        next: null,
+        previous: null,
     }),
     actions: {
-        async getOrganizations() {
+        async getOrganizations(page = 1, page_size = 5) {
             try {
                 this.loading = true;
+
                 const response = await axios.get(
-                    'https://developer3.elros.info/api/v1/organizations/',
+                    `https://developer3.elros.info/api/v1/organizations/?page=${page}&page_size=${page_size}`,
                 );
+
+                response.data.next === null ? (this.next = null) : (this.next = true);
+                response.data.previous === null ? (this.previous = null) : (this.previous = true);
+
+                this.count = response.data.count;
                 this.organizations = response.data.results;
+                console.log('get', this.organizations);
                 this.loading = false;
             } catch (error) {
                 console.log('Произошла ошибка при получении организации:', error);
             }
         },
-        async sortOrganizations(param) {
+        async sortOrganizations(param, page, page_size) {
             try {
                 if (this.sortOrder === 'down') {
                     const response = await axios.get(
-                        `https://developer3.elros.info/api/v1/organizations/?ordering=${param}`,
+                        `https://developer3.elros.info/api/v1/organizations/?page=${page}&page_size=${page_size}&ordering=${param}`,
                     );
                     this.organizations = response.data.results;
+                    console.log('sort', this.organizations);
                     this.sortOrder = 'up';
                 } else {
                     const response = await axios.get(
-                        `https://developer3.elros.info/api/v1/organizations/?ordering=-${param}`,
+                        `https://developer3.elros.info/api/v1/organizations/?page=${page}&page_size=${page_size}&ordering=-${param}`,
                     );
                     this.organizations = response.data.results;
                     this.sortOrder = 'down';
