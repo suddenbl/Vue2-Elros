@@ -5,23 +5,19 @@
         </h4>
         <div class="table-bar">
             <div class="col id-col">
-                <p class="id-col-name" @click="sortOrganizations('id', page, page_size)">
+                <p class="id-col-name" @click="changeSort('id')">
                     ID
                     <img
                         :class="{
                             'id-col-img': true,
-                            rotated: organizationStore.sortOrder === 'up',
+                            rotated: organizationStore.sortOrder === '+',
                         }"
                         src="../assets/images/arrow.svg"
                         alt="arrow" />
                 </p>
             </div>
-            <div class="col name-col" @click="sortOrganizations('name', page, page_size)">
-                Наименование
-            </div>
-            <div class="col active-col" @click="sortOrganizations('is_active', page, page_size)">
-                Активен
-            </div>
+            <div class="col name-col" @click="changeSort('name')">Наименование</div>
+            <div class="col active-col" @click="changeSort('is_active')">Активен</div>
             <div class="col delete-col">Удаление</div>
         </div>
         <div class="table-content" v-if="organizationStore.loading === false">
@@ -38,24 +34,31 @@
                 type="number"
                 min="1"
                 :max="organizationStore.count"
-                v-model="page_size"
-                @change="getOrganizations(1, page_size)" />
+                :value="organizationStore.pageSize"
+                @change="changePagesSize(Number($event.target.value))" />
             <p>
-                {{ (page - 1) * page_size + 1 }} -
-                {{ Math.min(page * page_size, organizationStore.count) }} из
+                {{ (this.organizationStore.pageCurrent - 1) * this.organizationStore.pageSize + 1 }}
+                -
+                {{
+                    Math.min(
+                        this.organizationStore.pageCurrent * this.organizationStore.pageSize,
+                        organizationStore.count,
+                    )
+                }}
+                из
                 {{ organizationStore.count }}
             </p>
             <div class="pagination-buttons-block">
-                <button class="pagination-button" @click="getOrganizationsFirst(page_size)">
+                <button class="pagination-button" @click="paginationFirstPage()">
                     {{ '|<' }}
                 </button>
-                <button class="pagination-button" @click="getOrganizationsPrev(page, page_size)">
+                <button class="pagination-button" @click="paginationPrevPage()">
                     {{ '<' }}
                 </button>
-                <button class="pagination-button" @click="getOrganizationsNext(page, page_size)">
+                <button class="pagination-button" @click="paginationNextPage()">
                     {{ '>' }}
                 </button>
-                <button class="pagination-button" @click="getOrganizationsLast(page_size)">
+                <button class="pagination-button" @click="paginationLastPage()">
                     {{ '>|' }}
                 </button>
             </div>
@@ -74,43 +77,40 @@ export default {
     data() {
         return {
             organizationStore: null,
-            page: 1,
-            page_size: 5,
         };
     },
     created() {
         this.organizationStore = useOrganizationStore();
     },
     methods: {
-        getOrganizations(page, page_size) {
-            this.organizationStore.getOrganizations(page, page_size);
+        paginationFirstPage() {
+            this.organizationStore.setPage((this.organizationStore.pageCurrent = 1));
+            this.organizationStore.getOrganizations();
         },
-        getOrganizationsFirst(page_size) {
-            this.page = 1;
-            this.getOrganizations(this.page, page_size);
+        paginationLastPage() {
+            this.organizationStore.setPage(
+                (this.organizationStore.pageCurrent = this.organizationStore.pagesCount),
+            );
+            this.organizationStore.getOrganizations();
         },
-        getOrganizationsPrev(page, page_size) {
-            if (this.organizationStore.previous === null) {
-                return;
-            } else {
-                this.page = page - 1;
-                this.getOrganizations(this.page, page_size);
+        paginationNextPage() {
+            if (this.organizationStore.pageCurrent < this.organizationStore.pagesCount) {
+                this.organizationStore.setPage(this.organizationStore.pageCurrent + 1);
+                this.organizationStore.getOrganizations();
             }
         },
-        getOrganizationsNext(page, page_size) {
-            if (this.organizationStore.next === null) {
-                return;
-            } else {
-                this.page = page + 1;
-                this.getOrganizations(this.page, page_size);
+        paginationPrevPage() {
+            if (this.organizationStore.pageCurrent > 1) {
+                this.organizationStore.setPage(this.organizationStore.pageCurrent - 1);
             }
+            this.organizationStore.getOrganizations();
         },
-        getOrganizationsLast(page_size) {
-            this.page = Math.ceil(this.organizationStore.count / page_size);
-            this.getOrganizations(this.page, page_size);
+        changePagesSize(size) {
+            this.organizationStore.setPageSize(size);
         },
-        sortOrganizations(param, page, page_size) {
-            this.organizationStore.sortOrganizations(param, page, page_size);
+        changeSort(name) {
+            this.organizationStore.setSort(name);
+            this.organizationStore.getOrganizations();
         },
     },
 };

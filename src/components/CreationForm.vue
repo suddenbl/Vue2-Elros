@@ -94,6 +94,7 @@ export default {
             const isValid = this.formValidate(name, short_name, description);
             if (isValid) {
                 this.organizationStore.createOrganization(name, short_name, description, is_active);
+                this.$router.push('/');
             }
         },
     },

@@ -5,63 +5,51 @@ export const useOrganizationStore = defineStore('organizationStore', {
     state: () => ({
         loading: false,
         organizations: [],
-        sortOrder: 'down',
+        sortOrder: '-',
+        sortName: '',
+        pagesCount: 0,
+        pageSize: 5,
+        pageCurrent: 1,
         count: 0,
-        next: null,
-        previous: null,
     }),
     actions: {
-        async getOrganizations(page = 1, page_size = 5) {
-            try {
-                this.loading = true;
+        setCount(count) {
+            this.count = count;
+            this.pagesCount = Math.ceil(count / this.pageSize);
+        },
+        setOrganizations(organizations) {
+            this.organizations = organizations;
+        },
+        setPage(page) {
+            this.pageCurrent = page;
+        },
+        setPageSize(size) {
+            this.pageSize = size;
+            this.pagesCount = Math.ceil(this.count / size);
+            this.getOrganizations();
+        },
+        setSort(name) {
+            this.sortName = name;
 
+            if (this.sortOrder === '-') {
+                this.sortOrder = '+';
+            } else {
+                this.sortOrder = '-';
+            }
+        },
+
+        async getOrganizations() {
+            try {
                 const response = await axios.get(
-                    `https://developer3.elros.info/api/v1/organizations/?page=${page}&page_size=${page_size}`,
+                    `https://developer3.elros.info/api/v1/organizations/?page=${this.pageCurrent}&page_size=${this.pageSize}&ordering=${this.sortOrder}${this.sortName}`,
                 );
 
-                response.data.next === null ? (this.next = null) : (this.next = true);
-                response.data.previous === null ? (this.previous = null) : (this.previous = true);
+                this.setCount(response.data.count);
+                this.setOrganizations(response.data.results);
 
-                this.count = response.data.count;
-                this.organizations = response.data.results;
-                this.loading = false;
+                console.log('Получение данных прошло успешно!', response);
             } catch (error) {
-                console.log('Произошла ошибка при получении организации:', error);
-            }
-        },
-        async sortOrganizations(param, page, page_size) {
-            try {
-                if (this.sortOrder === 'down') {
-                    const response = await axios.get(
-                        `https://developer3.elros.info/api/v1/organizations/?page=${page}&page_size=${page_size}&ordering=${param}`,
-                    );
-                    this.organizations = response.data.results;
-                    this.sortOrder = 'up';
-                } else {
-                    const response = await axios.get(
-                        `https://developer3.elros.info/api/v1/organizations/?page=${page}&page_size=${page_size}&ordering=-${param}`,
-                    );
-                    this.organizations = response.data.results;
-                    this.sortOrder = 'down';
-                }
-            } catch (error) {
-                console.log('Произошла ошибка при запросе сортировки', error);
-            }
-        },
-        async deleteOrganization(id) {
-            try {
-                const response = await axios.delete(
-                    `https://developer3.elros.info/api/v1/organizations/${id}/`,
-                );
-                console.log(response);
-                if (response.status === 204) {
-                    this.organizations = this.organizations.filter((el) => {
-                        return el.id !== id;
-                    });
-                    console.log('Удаление организации прошло успешно!');
-                }
-            } catch (error) {
-                console.log('Произошла ошибка при удалении организации: ', error);
+                console.log('Произошла ошибка при получении данных: ', error);
             }
         },
         async createOrganization(name, short_name, description, is_active) {
@@ -78,6 +66,22 @@ export const useOrganizationStore = defineStore('organizationStore', {
                 console.log('Добавление прошло успешно!', response);
             } catch (error) {
                 console.log('Произошла ошибка при добавлении организациию: ', error);
+            }
+        },
+        async deleteOrganization(id) {
+            try {
+                const response = await axios.delete(
+                    `https://developer3.elros.info/api/v1/organizations/${id}`,
+                );
+                if (response.status === 204) {
+                    this.organizations = this.organizations.filter((el) => {
+                        return el.id !== id;
+                    });
+                    console.log('Удаление организации прошло успешно!');
+                }
+                console.log('Удаление прошло успешно!', response);
+            } catch (error) {
+                console.log('Произошла ошибка при удалении организации:', error);
             }
         },
     },
