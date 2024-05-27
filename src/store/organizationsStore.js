@@ -64,6 +64,7 @@ export const useOrganizationStore = defineStore('organizationStore', {
                     },
                 );
                 console.log('Добавление прошло успешно!', response);
+                this.getOrganizations();
             } catch (error) {
                 console.log('Произошла ошибка при добавлении организациию: ', error);
             }
